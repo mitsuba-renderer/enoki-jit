@@ -7,7 +7,7 @@
 #include "var.h"
 #include "op.h"
 
-#define OPTIX_ABI_VERSION 55
+#define OPTIX_ABI_VERSION 60
 
 #if defined(_WIN32)
 #  include <windows.h>
