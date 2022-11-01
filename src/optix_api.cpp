@@ -76,7 +76,8 @@ using OptixTask = void*;
 #define OPTIX_EXCEPTION_FLAG_TRACE_DEPTH              2
 #define OPTIX_EXCEPTION_FLAG_DEBUG                    8
 #define OPTIX_COMPILE_DEBUG_LEVEL_NONE                0x2350
-#define OPTIX_COMPILE_DEBUG_LEVEL_MINIMAL             0x2351
+#define OPTIX_COMPILE_DEBUG_LEVEL_FULL                0x2352
+#define OPTIX_COMPILE_OPTIMIZATION_DEFAULT            0
 #define OPTIX_COMPILE_OPTIMIZATION_LEVEL_0            0x2340
 #define OPTIX_COMPILE_OPTIMIZATION_LEVEL_1            0x2341
 #define OPTIX_COMPILE_OPTIMIZATION_LEVEL_2            0x2342
@@ -390,11 +391,11 @@ OptixDeviceContext jitc_optix_context() {
     if (!state.optix_default_sbt_index) {
         OptixPipelineCompileOptions pco = jitc_optix_default_compile_options();
         OptixModuleCompileOptions mco { };
-#if 1
+#if defined(NDEBUG)
         mco.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
-        mco.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_3;
+        mco.optLevel = OPTIX_COMPILE_OPTIMIZATION_DEFAULT;
 #else
-        mco.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_MINIMAL;
+        mco.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_FULL;
         mco.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_0;
 #endif
 
@@ -580,11 +581,11 @@ bool jitc_optix_compile(ThreadState *ts, const char *buf, size_t buf_size,
     // =====================================================
 
     OptixModuleCompileOptions mco { };
-#if 1
+#if defined(NDEBUG)
     mco.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
-    mco.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_3;
+    mco.optLevel = OPTIX_COMPILE_OPTIMIZATION_DEFAULT;
 #else
-    mco.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_MINIMAL;
+    mco.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_FULL;
     mco.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_0;
 #endif
 
@@ -691,7 +692,11 @@ bool jitc_optix_compile(ThreadState *ts, const char *buf, size_t buf_size,
 
     OptixPipelineLinkOptions link_options {};
     link_options.maxTraceDepth = 1;
+#if defined(NDEBUG)
     link_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
+#else
+    link_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_FULL;
+#endif
 
     size_t size_before = pipeline.program_groups.size();
 #if 0
