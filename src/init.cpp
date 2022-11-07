@@ -207,6 +207,16 @@ void* jitc_cuda_context() {
     return (void*) thread_state(JitBackend::CUDA)->context;
 }
 
+void jitc_cuda_push_context(void* ctx) {
+    cuda_check(cuCtxPushCurrent((CUcontext) ctx));
+}
+
+void* jitc_cuda_pop_context() {
+    CUcontext out;
+    cuda_check(cuCtxPopCurrent(&out));
+    return out;
+}
+
 /// Release all resources used by the JIT compiler, and report reference leaks.
 void jitc_shutdown(int light) {
     // Synchronize with everything

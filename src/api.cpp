@@ -221,6 +221,16 @@ void* jit_cuda_context() {
     return jitc_cuda_context();
 }
 
+void jit_cuda_push_context(void* ctx) {
+    lock_guard guard(state.lock);
+    jitc_cuda_push_context(ctx);
+}
+
+void* jit_cuda_pop_context() {
+    lock_guard guard(state.lock);
+    return jitc_cuda_pop_context();
+}
+
 int jit_cuda_device_count() {
     lock_guard guard(state.lock);
     return (int) state.devices.size();

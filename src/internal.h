@@ -841,6 +841,12 @@ extern void* jitc_cuda_stream();
 /// Return a pointer to the CUDA context associated with the currently active device
 extern void* jitc_cuda_context();
 
+/// Push a new CUDA context to the currently active device
+extern void jitc_cuda_push_context(void *);
+
+/// Pop the current CUDA context and return it
+extern void* jitc_cuda_pop_context();
+
 extern void jitc_set_flags(uint32_t flags);
 
 extern uint32_t jitc_flags();

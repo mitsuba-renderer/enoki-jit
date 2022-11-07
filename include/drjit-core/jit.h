@@ -200,6 +200,12 @@ extern JIT_EXPORT void* jit_cuda_stream();
 /// Return the CUDA context associated with the current thread
 extern JIT_EXPORT void* jit_cuda_context();
 
+/// Push a new CUDA context to be associated with the current thread
+extern JIT_EXPORT void jit_cuda_push_context(void *);
+
+/// Pop the CUDA context associated to the current thread and return it
+extern JIT_EXPORT void* jit_cuda_pop_context();
+
 /// Query the compute capability of the current device (e.g. '52')
 extern JIT_EXPORT int jit_cuda_compute_capability();
 
