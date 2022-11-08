@@ -503,6 +503,7 @@ uint32_t jitc_optix_configure_pipeline(const OptixPipelineCompileOptions *pco,
     // Free pipeline resources when this variable is destroyed
     extra.callback = [](uint32_t /*index*/, int free, void *ptr) {
         if (free) {
+            scoped_set_context guard(thread_state_cuda->context);
             jitc_log(InfoSym, "jit_optix_configure(): free optix pipeline");
             OptixPipelineData *p = (OptixPipelineData*) ptr;
             for (size_t i = 0; i < p->program_groups.size(); i++)
