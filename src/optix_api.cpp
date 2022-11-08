@@ -7,7 +7,7 @@
 #include "var.h"
 #include "op.h"
 
-#define OPTIX_ABI_VERSION 60
+#define OPTIX_ABI_VERSION 55
 
 #if defined(_WIN32)
 #  include <windows.h>
@@ -76,6 +76,7 @@ using OptixTask = void*;
 #define OPTIX_EXCEPTION_FLAG_TRACE_DEPTH              2
 #define OPTIX_EXCEPTION_FLAG_DEBUG                    8
 #define OPTIX_COMPILE_DEBUG_LEVEL_NONE                0x2350
+#define OPTIX_COMPILE_DEBUG_LEVEL_MODERATE            0x2353
 #define OPTIX_COMPILE_DEBUG_LEVEL_FULL                0x2352
 #define OPTIX_COMPILE_OPTIMIZATION_DEFAULT            0
 #define OPTIX_COMPILE_OPTIMIZATION_LEVEL_0            0x2340
@@ -325,7 +326,7 @@ bool jitc_optix_init() {
 
 void jitc_optix_log(unsigned int level, const char *tag, const char *message, void *) {
     size_t len = strlen(message);
-    if (level <= (uint32_t) state.log_level_stderr)
+    if (level <= (uint32_t) -1)
         fprintf(stderr, "jit_optix_log(): [%s] %s%s", tag, message,
                 (len > 0 && message[len - 1] == '\n') ? "" : "\n");
 
@@ -586,7 +587,8 @@ bool jitc_optix_compile(ThreadState *ts, const char *buf, size_t buf_size,
     mco.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
     mco.optLevel = OPTIX_COMPILE_OPTIMIZATION_DEFAULT;
 #else
-    mco.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_FULL;
+    //mco.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_FULL;
+    mco.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_MODERATE;
     mco.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_0;
 #endif
 
