@@ -8,8 +8,8 @@
 */
 
 #define DR_OPTIX_SYM(...) __VA_ARGS__ = nullptr;
-#define DR_OPTIX_ABI_VERSION 55
-#define DR_OPTIX_FUNCTION_TABLE_SIZE 43
+#define DR_OPTIX_ABI_VERSION 87
+#define DR_OPTIX_FUNCTION_TABLE_SIZE 48
 
 #include "optix.h"
 #include "optix_api.h"
@@ -43,8 +43,8 @@ static const char *jitc_optix_table_names[DR_OPTIX_FUNCTION_TABLE_SIZE] = {
     "optixDeviceContextGetCacheEnabled",
     "optixDeviceContextGetCacheLocation",
     "optixDeviceContextGetCacheDatabaseSizes",
-    "optixModuleCreateFromPTX",
-    "optixModuleCreateFromPTXWithTasks",
+    "optixModuleCreate",
+    "optixModuleCreateWithTasks",
     "optixModuleGetCompilationState",
     "optixModuleDestroy",
     "optixBuiltinISModuleGet",
@@ -61,9 +61,14 @@ static const char *jitc_optix_table_names[DR_OPTIX_FUNCTION_TABLE_SIZE] = {
     "optixAccelCheckRelocationCompatibility",
     "optixAccelRelocate",
     "optixAccelCompact",
+    "optixAccelEmitProperty",
     "optixConvertPointerToTraversableHandle",
-    "reserved1",
-    "reserved2",
+    "optixOpacityMicromapArrayComputeMemoryUsage",
+    "optixOpacityMicromapArrayBuild",
+    "optixOpacityMicromapArrayGetRelocationInfo",
+    "optixOpacityMicromapArrayRelocate",
+    "optixDisplacementMicromapArrayComputeMemoryUsage",
+    "optixDisplacementMicromapArrayBuild",
     "optixSbtRecordPackHeader",
     "optixLaunch",
     "optixDenoiserCreate",
@@ -79,17 +84,6 @@ static const char *jitc_optix_table_names[DR_OPTIX_FUNCTION_TABLE_SIZE] = {
 bool jitc_optix_api_init() {
     if (jitc_optix_handle)
         return true;
-
-    if (jitc_cuda_version_major == 11 && jitc_cuda_version_minor == 5) {
-        jitc_log(
-            Warn,
-            "jit_optix_api_init(): DrJit considers the driver of your graphics "
-            "card buggy and prone to miscompilation by (we explicitly do not "
-            "support OptiX with CUDA 11.5, which roughly corresponds to driver "
-            "versions >= 495 and < 510). Please install a newer driver version "
-            "(or an older one is fine, too).");
-        return false;
-    }
 
 #if defined(_WIN32)
     const char* optix_fname = "nvoptix.dll";
@@ -144,7 +138,7 @@ bool jitc_optix_api_init() {
                 "jit_optix_api_init(): Failed to load OptiX library! Very likely, "
                 "your NVIDIA graphics driver is too old and not compatible "
                 "with the version of OptiX that is being used. In particular, "
-                "OptiX 7.4 requires driver revision R495.89 or newer.");
+                "OptiX 8.0 requires driver revision r535 or newer.");
         jitc_optix_api_shutdown();
         return false;
     }
@@ -157,8 +151,8 @@ bool jitc_optix_api_init() {
     LOAD(optixDeviceContextDestroy);
     LOAD(optixDeviceContextSetCacheEnabled);
     LOAD(optixDeviceContextSetCacheLocation);
-    LOAD(optixModuleCreateFromPTX);
-    LOAD(optixModuleCreateFromPTXWithTasks);
+    LOAD(optixModuleCreate);
+    LOAD(optixModuleCreateWithTasks);
     LOAD(optixModuleGetCompilationState);
     LOAD(optixModuleDestroy);
     LOAD(optixTaskExecute);
@@ -173,7 +167,7 @@ bool jitc_optix_api_init() {
 
     #undef LOAD
 
-    jitc_log(Info, "jit_optix_api_init(): loaded OptiX (via 7.4 ABI).");
+    jitc_log(Info, "jit_optix_api_init(): loaded OptiX (via 8.0 ABI).");
 
     return true;
 }
@@ -197,8 +191,9 @@ void jitc_optix_api_shutdown() {
     #define Z(x) x = nullptr
     Z(optixGetErrorName); Z(optixGetErrorString); Z(optixDeviceContextCreate);
     Z(optixDeviceContextDestroy); Z(optixDeviceContextSetCacheEnabled);
-    Z(optixDeviceContextSetCacheLocation); Z(optixModuleCreateFromPTX);
-    Z(optixModuleDestroy); Z(optixProgramGroupCreate);
+    Z(optixDeviceContextSetCacheLocation); Z(optixModuleCreate);
+    Z(optixModuleCreateWithTasks); Z(optixModuleGetCompilationState);
+    Z(optixModuleDestroy); Z(optixTaskExecute); Z(optixProgramGroupCreate);
     Z(optixProgramGroupDestroy); Z(optixPipelineCreate);
     Z(optixPipelineDestroy); Z(optixLaunch); Z(optixSbtRecordPackHeader);
     Z(optixPipelineSetStackSize); Z(optixProgramGroupGetStackSize);

@@ -29,6 +29,9 @@ using OptixProgramGroupKind  = int;
 #define OPTIX_SBT_RECORD_HEADER_SIZE        32
 
 #define OPTIX_COMPILE_DEBUG_LEVEL_NONE      0x2350
+#define OPTIX_COMPILE_DEBUG_LEVEL_FULL      0x2352
+#define OPTIX_COMPILE_OPTIMIZATION_LEVEL_0  0x2340
+#define OPTIX_COMPILE_OPTIMIZATION_LEVEL_3  0x2343
 
 #define OPTIX_BUILD_FLAG_ALLOW_COMPACTION   2
 #define OPTIX_BUILD_FLAG_PREFER_FAST_TRACE  4
@@ -186,7 +189,7 @@ D(optixAccelComputeMemoryUsage, OptixDeviceContext,
 D(optixAccelBuild, OptixDeviceContext, CUstream, const OptixAccelBuildOptions *,
   const OptixBuildInput *, unsigned int, CUdeviceptr, size_t, CUdeviceptr,
   size_t, OptixTraversableHandle *, const OptixAccelEmitDesc *, unsigned int);
-D(optixModuleCreateFromPTX, OptixDeviceContext,
+D(optixModuleCreate, OptixDeviceContext,
   const OptixModuleCompileOptions *, const OptixPipelineCompileOptions *,
   const char *, size_t, char *, size_t *, OptixModule *);
 D(optixModuleDestroy, OptixModule);

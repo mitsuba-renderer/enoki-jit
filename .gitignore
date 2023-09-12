@@ -11,7 +11,7 @@ tests/**/*.raw
 Testing
 /kernels/kernels_*.ptx
 /kernels/generate
-build
+/build*
 .vscode
 *.vcxproj
 *.vcxproj.filters

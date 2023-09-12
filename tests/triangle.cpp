@@ -32,8 +32,13 @@ using UInt32 = dr::CUDAArray<uint32_t>;
 using UInt64 = dr::CUDAArray<uint64_t>;
 using Mask = dr::CUDAArray<bool>;
 
+#if !defined(NDEBUG) || defined(DRJIT_ENABLE_OPTIX_DEBUG_VALIDATION)
+#define DRJIT_ENABLE_OPTIX_DEBUG_VALIDATION_ON
+#endif
+
 void demo() {
     OptixDeviceContext context = jit_optix_context();
+    jit_cuda_push_context(jit_cuda_context());
 
     // =====================================================
     // Copy vertex data to device
@@ -49,7 +54,7 @@ void demo() {
     // =====================================================
 
     const uint32_t triangle_input_flags[1] = { OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT };
-    OptixBuildInput triangle_input { };
+    OptixBuildInput triangle_input{};
     triangle_input.type                        = OPTIX_BUILD_INPUT_TYPE_TRIANGLES;
     triangle_input.triangleArray.vertexFormat  = OPTIX_VERTEX_FORMAT_FLOAT3;
     triangle_input.triangleArray.numVertices   = 3;
@@ -57,12 +62,12 @@ void demo() {
     triangle_input.triangleArray.flags         = triangle_input_flags;
     triangle_input.triangleArray.numSbtRecords = 1;
 
-    OptixAccelBuildOptions accel_options {};
+    OptixAccelBuildOptions accel_options{};
     accel_options.operation = OPTIX_BUILD_OPERATION_BUILD;
     accel_options.buildFlags =
         OPTIX_BUILD_FLAG_ALLOW_COMPACTION | OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;
 
-    OptixAccelBufferSizes gas_buffer_sizes;
+    OptixAccelBufferSizes gas_buffer_sizes{};
     jit_optix_check(optixAccelComputeMemoryUsage(
         context, &accel_options, &triangle_input, 1, &gas_buffer_sizes));
 
@@ -109,8 +114,13 @@ void demo() {
     // =====================================================
 
     OptixModuleCompileOptions module_compile_options { };
-    module_compile_options.debugLevel =
-        OPTIX_COMPILE_DEBUG_LEVEL_NONE;
+#ifndef DRJIT_ENABLE_OPTIX_DEBUG_VALIDATION_ON
+    module_compile_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
+    module_compile_options.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_3;
+#else
+    module_compile_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_FULL;
+    module_compile_options.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_0;
+#endif
 
     OptixPipelineCompileOptions pipeline_compile_options { };
     pipeline_compile_options.usesMotionBlur = false;
@@ -138,7 +148,7 @@ void demo() {
     size_t log_size = sizeof(log);
 
     OptixModule mod;
-    int rv = optixModuleCreateFromPTX(
+    int rv = optixModuleCreate(
         context, &module_compile_options, &pipeline_compile_options,
         miss_and_closesthit_ptx, strlen(miss_and_closesthit_ptx), log,
         &log_size, &mod);
@@ -268,6 +278,7 @@ void demo() {
     // =====================================================
 
     jit_free(d_gas);
+    jit_cuda_pop_context();
 }
 
 int main(int, char **) {

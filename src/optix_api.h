@@ -72,12 +72,11 @@ struct OptixModuleCompileOptions {
     const void *boundValues;
     unsigned int numBoundValues;
     unsigned int numPayloadTypes;
-    OptixPayloadType *payloadTypes;
+    const OptixPayloadType *payloadTypes;
 };
 
 struct OptixPipelineLinkOptions {
     unsigned int maxTraceDepth;
-    OptixCompileDebugLevel debugLevel;
 };
 
 struct OptixProgramGroupSingleModule {
@@ -140,11 +139,11 @@ DR_OPTIX_SYM(
     OptixResult (*optixDeviceContextSetCacheEnabled)(OptixDeviceContext, int));
 DR_OPTIX_SYM(OptixResult (*optixDeviceContextSetCacheLocation)(
     OptixDeviceContext, const char *));
-DR_OPTIX_SYM(OptixResult (*optixModuleCreateFromPTX)(
+DR_OPTIX_SYM(OptixResult (*optixModuleCreate)(
     OptixDeviceContext, const OptixModuleCompileOptions *,
     const OptixPipelineCompileOptions *, const char *, size_t, char *, size_t *,
     OptixModule *));
-DR_OPTIX_SYM(OptixResult (*optixModuleCreateFromPTXWithTasks)(
+DR_OPTIX_SYM(OptixResult (*optixModuleCreateWithTasks)(
     OptixDeviceContext, const OptixModuleCompileOptions *,
     const OptixPipelineCompileOptions *, const char *, size_t, char *, size_t *,
     OptixModule *, OptixTask *));
@@ -170,4 +169,5 @@ DR_OPTIX_SYM(OptixResult (*optixSbtRecordPackHeader)(OptixProgramGroup,
 DR_OPTIX_SYM(OptixResult (*optixPipelineSetStackSize)(
     OptixPipeline, unsigned int, unsigned int, unsigned int, unsigned int));
 DR_OPTIX_SYM(OptixResult (*optixProgramGroupGetStackSize)(OptixProgramGroup,
-                                                          OptixStackSizes *));
+                                                          OptixStackSizes *,
+                                                          OptixPipeline));
