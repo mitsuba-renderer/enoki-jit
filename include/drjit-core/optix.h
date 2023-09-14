@@ -81,7 +81,7 @@ extern JIT_EXPORT void
 jit_optix_update_sbt(uint32_t index, const OptixShaderBindingTable *sbt);
 
 /**
-  * \brief Insert a function call to optixTrace into the program
+  * \brief Insert a ray tracing call into the program
   *
   * The \c args list should contain a list of variable indices corresponding to
   * the 15 required function arguments <tt>handle, ox, oy, oz, dx, dy, dz, tmin,
@@ -91,6 +91,9 @@ jit_optix_update_sbt(uint32_t index, const OptixShaderBindingTable *sbt);
   * value greater than 15. In this case, the corresponding elements will be
   * overwritten with the new variable indices with external reference count 1
   * containing the final payload value.
+  *
+  * The \c shadow_ray argument is a boolean indicating whether or not OptiX
+  * should only perform an occlusion test for the ray.
   *
   * The \c pipeline JIT variable index specifies the OptiX pipeline to be used
   * in the kernel executing this ray tracing operation. This index should be
@@ -118,8 +121,8 @@ jit_optix_update_sbt(uint32_t index, const OptixShaderBindingTable *sbt);
   * </tt>
   */
 extern JIT_EXPORT void
-jit_optix_ray_trace(uint32_t n_args, uint32_t *args, uint32_t mask,
-                    uint32_t pipeline, uint32_t sbt);
+jit_optix_ray_trace(uint32_t n_args, uint32_t *args, int shadow_ray,
+                    uint32_t mask, uint32_t pipeline, uint32_t sbt);
 
 #if defined(__cplusplus)
 }

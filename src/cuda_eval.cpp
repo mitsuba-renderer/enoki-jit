@@ -772,8 +772,8 @@ static void jitc_cuda_render_var(uint32_t index, Variable *v) {
         case VarKind::TraceRay:
             jitc_cuda_render_trace(index, v, a0, a1, a2);
             break;
-#endif
 
+#endif
         case VarKind::Extract:
             fmt("    mov.$b $v, $v_out_$u;\n", v, v, a0, (uint32_t) v->literal);
             break;
@@ -1105,6 +1105,7 @@ static void jitc_cuda_render_trace(uint32_t index, const Variable *v,
     OptixPipelineData *pipeline_p = (OptixPipelineData *) pipeline->literal;
     OptixShaderBindingTable *sbt_p = (OptixShaderBindingTable*) sbt->literal;
     bool problem = false;
+    bool shadow_ray = v->literal == 1;
 
     if (ts->optix_pipeline == state.optix_default_pipeline) {
         ts->optix_pipeline = pipeline_p;
@@ -1148,25 +1149,53 @@ static void jitc_cuda_render_trace(uint32_t index, const Variable *v,
     fmt("    .reg.u32 $v_payload_type, $v_payload_count;\n"
         "    mov.u32 $v_payload_type, 0;\n"
         "    mov.u32 $v_payload_count, $u;\n",
-            v, v, v, v, payload_count);
+        v, v, v, v, payload_count);
 
+    // =====================================================
+    // 1. Traverse
+    // =====================================================
     put("    call (");
     for (uint32_t i = 0; i < 32; ++i)
         fmt("$v_out_$u$s", v, i, i + 1 < 32 ? ", " : "");
-    put("), _optix_trace_typed_32, (");
-
+    put("), _optix_hitobject_traverse, (");
     fmt("$v_payload_type, ", v);
     for (uint32_t i = 0; i < 15; ++i)
         fmt("$v, ", jitc_var(extra.dep[i]));
-
     fmt("$v_payload_count, ", v);
     for (uint32_t i = 15; i < extra.n_dep; ++i)
         fmt("$v$s", jitc_var(extra.dep[i]), (i - 15 < 32) ? ", " : "");
-
     for (uint32_t i = payload_count; i < 32; ++i)
         fmt("$v_out_$u$s", v, i, (i + 1 < 32) ? ", " : "");
-
     put(");\n");
+
+    // =====================================================
+    // 2. Reorder
+    // =====================================================
+    if (jitc_flags() & (uint32_t) JitFlag::ShaderExecutionReordering) {
+        fmt("    .reg.u32 $v_reorder_hint, $v_reorder_hint_bits;\n"
+            "    mov.u32 $v_reorder_hint, 0;\n"
+            "    mov.u32 $v_reorder_hint_bits, 0;\n",
+            v, v, v, v);
+        put("    call (), _optix_hitobject_reorder, (");
+        fmt("$v_reorder_hint, $v_reorder_hint_bits);\n ", v, v);
+    }
+
+    // =====================================================
+    // 3. Invoke hit/miss program
+    // =====================================================
+    if (!shadow_ray) {
+        put("    call (");
+        for (uint32_t i = 0; i < 32; ++i)
+            fmt("$v_out_$u$s", v, i, i + 1 < 32 ? ", " : "");
+        put("), _optix_hitobject_invoke, (");
+        fmt("$v_payload_type, ", v);
+        fmt("$v_payload_count, ", v);
+        for (uint32_t i = 0; i < 32; ++i)
+            fmt("$v_out_$u$s", v, i, i + 1 < 32 ? ", " : "");
+        put(");\n");
+    } else {
+        fmt("    call ($v_out_0), _optix_hitobject_is_hit, ();", v);
+    }
 
     if (masked)
         fmt("\nl_masked_$u:\n", v->reg_index);

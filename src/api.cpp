@@ -861,10 +861,11 @@ void jit_optix_update_sbt(uint32_t index, const OptixShaderBindingTable *sbt) {
     jitc_optix_update_sbt(index, sbt);
 }
 
-void jit_optix_ray_trace(uint32_t nargs, uint32_t *args, uint32_t mask,
+void jit_optix_ray_trace(uint32_t nargs, uint32_t *args,
+                         int shadow_ray, uint32_t mask,
                          uint32_t pipeline, uint32_t sbt) {
     lock_guard guard(state.lock);
-    jitc_optix_ray_trace(nargs, args, mask, pipeline, sbt);
+    jitc_optix_ray_trace(nargs, args, shadow_ray, mask, pipeline, sbt);
 }
 
 #endif

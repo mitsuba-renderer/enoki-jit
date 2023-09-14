@@ -495,7 +495,8 @@ void jitc_optix_launch(ThreadState *ts, const Kernel &kernel,
     }
 }
 
-void jitc_optix_ray_trace(uint32_t n_args, uint32_t *args, uint32_t mask,
+void jitc_optix_ray_trace(uint32_t n_args, uint32_t *args,
+                          int shadow_ray, uint32_t mask,
                           uint32_t pipeline, uint32_t sbt) {
     VarType types[]{ VarType::UInt64,  VarType::Float32, VarType::Float32,
                      VarType::Float32, VarType::Float32, VarType::Float32,
@@ -561,9 +562,9 @@ void jitc_optix_ray_trace(uint32_t n_args, uint32_t *args, uint32_t mask,
              placeholder ? " (part of a recorded computation)" : "");
 
     Ref index = steal(jitc_var_new_node_3(
-        JitBackend::CUDA, VarKind::TraceRay, VarType::Void, size,
-        placeholder, valid, jitc_var(valid), pipeline, jitc_var(pipeline), sbt,
-        jitc_var(sbt)));
+        JitBackend::CUDA, VarKind::TraceRay, VarType::Void, size, placeholder,
+        valid, jitc_var(valid), pipeline, jitc_var(pipeline), sbt,
+        jitc_var(sbt), shadow_ray));
 
     Variable *v = jitc_var(index);
     v->extra = v->optix = 1;

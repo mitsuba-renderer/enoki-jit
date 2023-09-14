@@ -42,8 +42,9 @@ extern uint32_t jitc_optix_configure_sbt(const OptixShaderBindingTable *sbt,
 /// Overwrite existing OptiX Shader Binding Table given an index
 extern void jitc_optix_update_sbt(uint32_t index, const OptixShaderBindingTable *sbt);
 
-/// Insert a function call to optixTrace into the program
-extern void jitc_optix_ray_trace(uint32_t nargs, uint32_t *args, uint32_t mask,
+/// Insert a ray tracing call into the program
+extern void jitc_optix_ray_trace(uint32_t nargs, uint32_t *args,
+                                 int shadow_ray, uint32_t mask,
                                  uint32_t pipeline, uint32_t sbt);
 
 /// Compile an OptiX kernel
