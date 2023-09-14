@@ -1353,6 +1353,9 @@ enum class JitFlag : uint32_t {
     /// Perform a intra-warp/SIMD register reduction before issuing global atomics
     AtomicReduceLocal = 16384,
 
+    /// Uses SER (shader execution reordering) on vcalls and intersections
+    ShaderExecutionReordering = 32768,
+
     /// Default flags
     Default = (uint32_t) ConstProp | (uint32_t) ValueNumbering |
               (uint32_t) LoopRecord | (uint32_t) LoopOptimize |
