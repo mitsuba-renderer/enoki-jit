@@ -1376,6 +1376,20 @@ void jitc_var_vcall_assemble_cuda(VCall *vcall, uint32_t vcall_reg,
         offset += size;
     }
 
+    // =====================================================
+    // 5.2. Call the target function
+    // =====================================================
+
+    if (uses_optix && (vcall->n_inst > 1) &&
+        (jitc_flags() & (uint32_t) JitFlag::ShaderExecutionReordering)) {
+        put("            call (), _optix_hitobject_make_nop, ();\n");
+        put("            .reg.u32 reorder_hint, reorder_hint_bits;\n"
+            "            mov.u32 reorder_hint, %r3;\n"
+            "            mov.u32 reorder_hint_bits, 32;\n");
+        put("            call (), _optix_hitobject_reorder, (reorder_hint, "
+            "reorder_hint_bits);\n ");
+    }
+
     if (vcall->use_self) {
         fmt("            call $s%rd2, (%r$u$s$s), proto;\n",
             out_size ? "(out), " : "", self_reg,
@@ -1388,7 +1402,7 @@ void jitc_var_vcall_assemble_cuda(VCall *vcall, uint32_t vcall_reg,
     }
 
     // =====================================================
-    // 5.2. Read back the output arguments
+    // 5.3. Read back the output arguments
     // =====================================================
 
     offset = 0;
