@@ -84,11 +84,12 @@ jit_optix_update_sbt(uint32_t index, const OptixShaderBindingTable *sbt);
   * \brief Insert a ray tracing call into the program
   *
   * The \c args list should contain a list of variable indices corresponding to
-  * the 15 required function arguments <tt>handle, ox, oy, oz, dx, dy, dz, tmin,
-  * tmax, time, mask, flags, sbt_offset, sbt_stride, miss_sbt_index</tt>.
+  * the 16 required function arguments <tt>coherent, handle, ox, oy, oz, dx, dy,
+  * dz, tmin, tmax, time, mask, flags, sbt_offset, sbt_stride, miss_sbt_index
+  * </tt>.
   *
   * Up to 32 payload values can optionally be provided by setting \c n_args to a
-  * value greater than 15. In this case, the corresponding elements will be
+  * value greater than 16. In this case, the corresponding elements will be
   * overwritten with the new variable indices with external reference count 1
   * containing the final payload value.
   *

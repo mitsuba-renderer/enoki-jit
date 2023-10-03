@@ -1773,9 +1773,10 @@ extern JIT_EXPORT void jit_block_sum(JIT_ENUM JitBackend backend, JIT_ENUM VarTy
 /**
  * \brief Insert a function call to a ray tracing functor into the LLVM program
  *
- * The \c args list should contain a list of variable indices corresponding to
+ * The \c in list should contain a list of variable indices corresponding to
  * the 13 required function arguments
- * - active_mask (32 bit integer with '-1' for active, and '0' for inactive)
+ * - coherent
+ * - active_mask
  * - ox, oy, oz
  * - tmin
  * - dx, dy, dz

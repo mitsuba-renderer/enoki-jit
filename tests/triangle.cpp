@@ -239,13 +239,14 @@ void demo() {
 
         UInt32 payload_0(0);
         Mask mask = true;
+        Mask coherent = false;
 
         // =====================================================
         // Launch a ray tracing call
         // =====================================================
 
         uint32_t trace_args[] {
-            handle.index(),
+            coherent.index(), handle.index(),
             ox.index(), oy.index(), oz.index(),
             dx.index(), dy.index(), dz.index(),
             mint.index(), maxt.index(), time.index(),
@@ -254,11 +255,14 @@ void demo() {
             miss_sbt_index.index(), payload_0.index()
         };
 
+        jit_set_flag(JitFlag::PrintIR, true);
+        jit_set_flag(JitFlag::ShaderExecutionReordering, true);
+
         jit_optix_ray_trace(sizeof(trace_args) / sizeof(uint32_t), trace_args,
                             false, mask.index(), pipeline_handle.index(),
                             sbt_handle.index());
 
-        payload_0 = UInt32::steal(trace_args[15]);
+        payload_0 = UInt32::steal(trace_args[16]);
 
         jit_var_eval(payload_0.index());
 

@@ -1132,7 +1132,7 @@ static void jitc_cuda_render_trace(uint32_t index, const Variable *v,
     }
 
     const Extra &extra = state.extra[index];
-    uint32_t payload_count = extra.n_dep - 15;
+    uint32_t payload_count = extra.n_dep - 16;
 
     fmt("    .reg.u32 $v_out_<32>;\n", v);
 
@@ -1159,11 +1159,11 @@ static void jitc_cuda_render_trace(uint32_t index, const Variable *v,
         fmt("$v_out_$u$s", v, i, i + 1 < 32 ? ", " : "");
     put("), _optix_hitobject_traverse, (");
     fmt("$v_payload_type, ", v);
-    for (uint32_t i = 0; i < 15; ++i)
+    for (uint32_t i = 1; i < 16; ++i)
         fmt("$v, ", jitc_var(extra.dep[i]));
     fmt("$v_payload_count, ", v);
-    for (uint32_t i = 15; i < extra.n_dep; ++i)
-        fmt("$v$s", jitc_var(extra.dep[i]), (i - 15 < 32) ? ", " : "");
+    for (uint32_t i = 16; i < extra.n_dep; ++i)
+        fmt("$v$s", jitc_var(extra.dep[i]), (i - 16 < 32) ? ", " : "");
     for (uint32_t i = payload_count; i < 32; ++i)
         fmt("$v_out_$u$s", v, i, (i + 1 < 32) ? ", " : "");
     put(");\n");
@@ -1171,7 +1171,9 @@ static void jitc_cuda_render_trace(uint32_t index, const Variable *v,
     // =====================================================
     // 2. Reorder
     // =====================================================
-    if (jitc_flags() & (uint32_t) JitFlag::ShaderExecutionReordering) {
+    const Variable *coherent = jitc_var(extra.dep[0]);
+    if ((!coherent->is_literal() || coherent->literal == 0) &&
+        jitc_flags() & (uint32_t) JitFlag::ShaderExecutionReordering) {
         fmt("    .reg.u32 $v_reorder_hint, $v_reorder_hint_bits;\n"
             "    mov.u32 $v_reorder_hint, 0;\n"
             "    mov.u32 $v_reorder_hint_bits, 0;\n",

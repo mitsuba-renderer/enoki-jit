@@ -498,19 +498,19 @@ void jitc_optix_launch(ThreadState *ts, const Kernel &kernel,
 void jitc_optix_ray_trace(uint32_t n_args, uint32_t *args,
                           int shadow_ray, uint32_t mask,
                           uint32_t pipeline, uint32_t sbt) {
-    VarType types[]{ VarType::UInt64,  VarType::Float32, VarType::Float32,
+    VarType types[]{ VarType::Bool,    VarType::UInt64,  VarType::Float32,
                      VarType::Float32, VarType::Float32, VarType::Float32,
                      VarType::Float32, VarType::Float32, VarType::Float32,
-                     VarType::Float32, VarType::UInt32,  VarType::UInt32,
+                     VarType::Float32, VarType::Float32, VarType::UInt32,
                      VarType::UInt32,  VarType::UInt32,  VarType::UInt32,
                      VarType::UInt32,  VarType::UInt32,  VarType::UInt32,
                      VarType::UInt32,  VarType::UInt32,  VarType::UInt32,
-                     VarType::UInt32,  VarType::UInt32 };
+                     VarType::UInt32,  VarType::UInt32,  VarType::UInt32 };
 
-    if (n_args < 15)
-        jitc_raise("jit_optix_ray_trace(): too few arguments (got %u < 15)", n_args);
+    if (n_args < 16)
+        jitc_raise("jit_optix_ray_trace(): too few arguments (got %u < 16)", n_args);
 
-    uint32_t np = n_args - 15, size = 0;
+    uint32_t np = n_args - 16, size = 0;
     if (np > 32)
         jitc_raise("jit_optix_ray_trace(): too many payloads (got %u > 32)", np);
 
@@ -579,7 +579,7 @@ void jitc_optix_ray_trace(uint32_t n_args, uint32_t *args,
     }
 
     for (uint32_t i = 0; i < np; ++i)
-        args[15 + i] = jitc_var_new_node_1(
+        args[16 + i] = jitc_var_new_node_1(
             JitBackend::CUDA, VarKind::Extract, VarType::UInt32,
             size, placeholder, index, jitc_var(index), (uint64_t) i);
 }
