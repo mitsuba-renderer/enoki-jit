@@ -16,9 +16,7 @@
 #include "op.h"
 #include "profiler.h"
 #include "vcall.h"
-#include <set>
 
-using CallablesSet = std::set<XXH128_hash_t, XXH128Cmp>;
 
 static std::vector<VCall *> vcalls_assembled;
 
@@ -641,7 +639,7 @@ void jitc_var_vcall_assemble(VCall *vcall, uint32_t self_reg, uint32_t mask_reg,
 
     ThreadState *ts = thread_state(vcall->backend);
 
-    CallablesSet callables_set;
+    vcall->callables_set = {};
     for (uint32_t i = 0; i < vcall->n_inst; ++i) {
         XXH128_hash_t hash = jitc_assemble_func(
             ts, vcall->name, i, in_size, in_align, out_size, out_align,
@@ -651,7 +649,7 @@ void jitc_var_vcall_assemble(VCall *vcall, uint32_t self_reg, uint32_t mask_reg,
             vcall->side_effects.data() + vcall->checkpoints[i],
             vcall->use_self);
         vcall->inst_hash[i] = hash;
-        callables_set.insert(hash);
+        vcall->callables_set.insert(hash);
     }
 
     size_t se_count = vcall->side_effects.size();
@@ -687,7 +685,7 @@ void jitc_var_vcall_assemble(VCall *vcall, uint32_t self_reg, uint32_t mask_reg,
         InfoSym,
         "jit_var_vcall_assemble(): indirect call (\"%s\") to %zu/%u instances, "
         "passing %u/%u inputs (%u/%u bytes), %u/%u outputs (%u/%u bytes), %zu side effects",
-        vcall->name, callables_set.size(), vcall->n_inst, n_in_active,
+        vcall->name, vcall->callables_set.size(), vcall->n_inst, n_in_active,
         vcall->in_count_initial, in_size, vcall->in_size_initial, n_out_active,
         n_out, out_size, vcall->out_size_initial, se_count);
 
