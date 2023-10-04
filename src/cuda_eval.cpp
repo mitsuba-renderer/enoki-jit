@@ -1173,20 +1173,22 @@ static void jitc_cuda_render_trace(uint32_t index, const Variable *v,
     // =====================================================
     const Variable *coherent = jitc_var(extra.dep[0]);
     bool ser_enabled = jitc_flags() & (uint32_t) JitFlag::ShaderExecutionReordering;
-    bool coherent_enabled =
-        (!coherent->is_literal() || coherent->literal == 0) || // False if coherent
-        !(jitc_flags() & (uint32_t) JitFlag::OnlyReorderIfNonCoherent);
 
     bool shadow_enabled =
         !shadow_ray || // false if shadow_ray
         !(jitc_flags() & (uint32_t) JitFlag::DoNotReorderShadowRays);
 
-    if (ser_enabled && coherent_enabled && shadow_enabled) {
+    if (ser_enabled && shadow_enabled) {
         fmt("    .reg.u32 $v_reorder_hint, $v_reorder_hint_bits;\n"
             "    mov.u32 $v_reorder_hint, 0;\n"
             "    mov.u32 $v_reorder_hint_bits, 0;\n",
             v, v, v, v);
-        put("    call (), _optix_hitobject_reorder, (");
+
+        if (jitc_flags() & (uint32_t) JitFlag::OnlyReorderIfNonCoherent)
+            fmt("    @!$v call.uni (), _optix_hitobject_reorder, (", coherent);
+        else
+            put("    call.uni (), _optix_hitobject_reorder, (");
+
         fmt("$v_reorder_hint, $v_reorder_hint_bits);\n ", v, v);
     }
 
@@ -1402,9 +1404,10 @@ void jitc_var_vcall_assemble_cuda(VCall *vcall, uint32_t vcall_reg,
         if (jitc_flags() & (uint32_t) JitFlag::UseInstanceIdInVCallReorder) {
             put("            call (), _optix_hitobject_make_nop, ();\n"
                 "            .reg.u32 reorder_hint, reorder_hint_bits, reorder_hint_high;\n");
-            fmt("            mov.u32 reorder_hint, %r$u;\n", self_reg);
-            put("            shl.b32 reorder_hint_high, %r3, 0x10U;\n"
-                "            or.b32 reorder_hint, reorder_hint_high, reorder_hint_high;\n");
+
+            put("            mov.u32 reorder_hint, %r3;\n");
+            fmt("            shl.b32 reorder_hint, reorder_hint, 0x10U;\n"
+                "            or.b32 reorder_hint, reorder_hint, %r$u;\n", self_reg);
         } else {
             put("            call (), _optix_hitobject_make_nop, ();\n"
                 "            .reg.u32 reorder_hint, reorder_hint_bits;\n"
