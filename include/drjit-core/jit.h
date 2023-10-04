@@ -1356,6 +1356,16 @@ enum class JitFlag : uint32_t {
     /// Uses SER (shader execution reordering) on vcalls and intersections
     ShaderExecutionReordering = 32768,
 
+    OnlyReorderIfNonCoherent = 65536,
+
+    DoNotReorderShadowRays = 131072,
+
+    ReorderBeforeVCalls = 262144,
+
+    ReorderVCallOnlyIfMultipleTargets = 524288,
+
+    UseInstanceIdInVCallReorder = 1048576,
+
     /// Default flags
     Default = (uint32_t) ConstProp | (uint32_t) ValueNumbering |
               (uint32_t) LoopRecord | (uint32_t) LoopOptimize |
@@ -1365,21 +1375,22 @@ enum class JitFlag : uint32_t {
 };
 #else
 enum JitFlag {
-    JitFlagConstProp           = 1,
-    JitFlagValueNumbering      = 2,
-    JitFlagLoopRecord          = 4,
-    JitFlagLoopOptimize        = 8,
-    JitFlagVCallRecord         = 16,
-    JitFlagVCallDeduplicate    = 32,
-    JitFlagVCallOptimize       = 64,
-    JitFlagVCallInline         = 128,
-    JitFlagForceOptiX          = 256,
-    JitFlagRecording           = 512,
-    JitFlagPrintIR             = 1024,
-    JitFlagKernelHistory       = 2048,
-    JitFlagLaunchBlocking      = 4096,
-    JitFlagADOptimize          = 8192,
-    JitFlagAtomicReduceLocal = 16384
+    JitFlagConstProp              = 1,
+    JitFlagValueNumbering         = 2,
+    JitFlagLoopRecord             = 4,
+    JitFlagLoopOptimize           = 8,
+    JitFlagVCallRecord            = 16,
+    JitFlagVCallDeduplicate       = 32,
+    JitFlagVCallOptimize          = 64,
+    JitFlagVCallInline            = 128,
+    JitFlagForceOptiX             = 256,
+    JitFlagRecording              = 512,
+    JitFlagPrintIR                = 1024,
+    JitFlagKernelHistory          = 2048,
+    JitFlagLaunchBlocking         = 4096,
+    JitFlagADOptimize             = 8192,
+    JitFlagAtomicReduceLocal      = 16384
+    JitFlagDoNotReorderShadowRays = 65536,
 };
 #endif
 

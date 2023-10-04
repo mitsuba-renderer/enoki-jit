@@ -1172,8 +1172,16 @@ static void jitc_cuda_render_trace(uint32_t index, const Variable *v,
     // 2. Reorder
     // =====================================================
     const Variable *coherent = jitc_var(extra.dep[0]);
-    if ((!coherent->is_literal() || coherent->literal == 0) &&
-        jitc_flags() & (uint32_t) JitFlag::ShaderExecutionReordering) {
+    bool ser_enabled = jitc_flags() & (uint32_t) JitFlag::ShaderExecutionReordering;
+    bool coherent_enabled =
+        (!coherent->is_literal() || coherent->literal == 0) || // False if coherent
+        !(jitc_flags() & (uint32_t) JitFlag::OnlyReorderIfNonCoherent);
+
+    bool shadow_enabled =
+        !shadow_ray || // false if shadow_ray
+        !(jitc_flags() & (uint32_t) JitFlag::DoNotReorderShadowRays);
+
+    if (ser_enabled && coherent_enabled && shadow_enabled) {
         fmt("    .reg.u32 $v_reorder_hint, $v_reorder_hint_bits;\n"
             "    mov.u32 $v_reorder_hint, 0;\n"
             "    mov.u32 $v_reorder_hint_bits, 0;\n",
@@ -1382,13 +1390,29 @@ void jitc_var_vcall_assemble_cuda(VCall *vcall, uint32_t vcall_reg,
     // 5.2. Call the target function
     // =====================================================
 
-    if (uses_optix && (vcall->n_inst > 1) &&
-        (jitc_flags() & (uint32_t) JitFlag::ShaderExecutionReordering)) {
-        put("            call (), _optix_hitobject_make_nop, ();\n");
-        put("            .reg.u32 reorder_hint, reorder_hint_bits;\n"
-            "            mov.u32 reorder_hint, %r3;\n"
-            "            mov.u32 reorder_hint_bits, 32;\n");
-        put("            call (), _optix_hitobject_reorder, (reorder_hint, "
+    bool multiple_enabled =
+        (vcall->callables_set.size() > 1) || // False if only one target
+        !(jitc_flags() & (uint32_t) JitFlag::ReorderVCallOnlyIfMultipleTargets);
+
+    if (uses_optix &&
+        (jitc_flags() & (uint32_t) JitFlag::ShaderExecutionReordering) &&
+        (jitc_flags() & (uint32_t) JitFlag::ReorderBeforeVCalls) &&
+        multiple_enabled
+    ) {
+        if (jitc_flags() & (uint32_t) JitFlag::UseInstanceIdInVCallReorder) {
+            put("            call (), _optix_hitobject_make_nop, ();\n"
+                "            .reg.u32 reorder_hint, reorder_hint_bits, reorder_hint_high;\n");
+            fmt("            mov.u32 reorder_hint, %r$u;\n", self_reg);
+            put("            shl.b32 reorder_hint_high, %r3, 0x10U;\n"
+                "            or.b32 reorder_hint, reorder_hint_high, reorder_hint_high;\n");
+        } else {
+            put("            call (), _optix_hitobject_make_nop, ();\n"
+                "            .reg.u32 reorder_hint, reorder_hint_bits;\n"
+                "            mov.u32 reorder_hint, %r3;\n");
+        }
+
+        put("            mov.u32 reorder_hint_bits, 0x20U;\n"
+            "            call (), _optix_hitobject_reorder, (reorder_hint, "
             "reorder_hint_bits);\n ");
     }
 
