@@ -37,6 +37,7 @@
 #include "log.h"
 #include "vcall.h"
 #include "optix.h"
+#include <iostream>
 
 #define fmt(fmt, ...) buffer.fmt_cuda(count_args(__VA_ARGS__), fmt, ##__VA_ARGS__)
 #define put(...)      buffer.put(__VA_ARGS__)
@@ -1397,13 +1398,16 @@ void jitc_var_vcall_assemble_cuda(VCall *vcall, uint32_t vcall_reg,
         !(jitc_flags() & (uint32_t) JitFlag::ReorderVCallOnlyIfMultipleTargets);
 
     if (uses_optix &&
-        (jitc_flags() & (uint32_t) JitFlag::ShaderExecutionReordering) &&
         (jitc_flags() & (uint32_t) JitFlag::ReorderBeforeVCalls) &&
         multiple_enabled
     ) {
+        std::cout << "Reordering!" << std::endl;
+        std::cout << "\ttargets: " << vcall->callables_set.size() << std::endl;
+        std::cout << "\tname: " << vcall->name << std::endl;
+
         if (jitc_flags() & (uint32_t) JitFlag::UseInstanceIdInVCallReorder) {
             put("            call (), _optix_hitobject_make_nop, ();\n"
-                "            .reg.u32 reorder_hint, reorder_hint_bits, reorder_hint_high;\n");
+                "            .reg.u32 reorder_hint, reorder_hint_bits;\n");
 
             put("            mov.u32 reorder_hint, %r3;\n");
             fmt("            shl.b32 reorder_hint, reorder_hint, 0x10U;\n"
