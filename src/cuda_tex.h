@@ -7,6 +7,8 @@ extern void *jitc_cuda_tex_create(size_t ndim, const size_t *shape,
                                   int filter_mode, int wrap_mode);
 extern void jitc_cuda_tex_get_shape(size_t ndim, const void *texture_handle,
                                     size_t *shape);
+extern void jitc_cuda_tex_get_indices(const void *texture_handle,
+                                      uint32_t *indices);
 extern void jitc_cuda_tex_memcpy_d2t(size_t ndim, const size_t *shape,
                                      const void *src_ptr,
                                      void *dst_texture_handle);
