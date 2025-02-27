@@ -1097,6 +1097,11 @@ void jit_cuda_tex_get_shape(size_t ndim, const void *texture_handle,
     jitc_cuda_tex_get_shape(ndim, texture_handle, shape);
 }
 
+void jit_cuda_tex_get_indices(const void *texture_handle, uint32_t *indices) {
+    lock_guard guard(state.lock);
+    jitc_cuda_tex_get_indices(texture_handle, indices);
+}
+
 void jit_cuda_tex_memcpy_d2t(size_t ndim, const size_t *shape,
                              const void *src_ptr, void *dst_texture) {
     lock_guard guard(state.lock);

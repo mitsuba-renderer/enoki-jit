@@ -73,6 +73,21 @@ extern JIT_EXPORT void jit_cuda_tex_get_shape(size_t ndim,
                                               size_t *shape);
 
 /**
+ * \brief Retrieves the JIT indices of the underlying texture objects. This can
+ * be used to traverse a texture for frozen function recording.
+ *
+ * \param texture_handle
+ *     Texture handle (returned value of \ref jit_cuda_tex_create())
+ *
+ * \param indices
+ *     Pointer to an array of size
+ *     <tt>n_textures = 1 + ((m_channels - 1) / 4)</tt>, to which
+ *     the JIT variable indices of the underlying textures will be written.
+ */
+extern JIT_EXPORT void
+jit_cuda_tex_get_indices(const void *texture_handle, uint32_t *indices);
+
+/**
  * \brief Copy from device to texture memory
  *
  * Fills the texture with data from device memory at \c src_ptr. The other

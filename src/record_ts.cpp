@@ -935,7 +935,7 @@ void RecordThreadState::record_expand(uint32_t index) {
         jitc_log(LogLevel::Debug, "record(): expand(dst=s%u, src=s%u)",
                  dst_slot, src_info.slot);
 
-        op.size = memcpy.size / type_size[(uint32_t) src_info.type];
+        op.size = memcpy.size / type_size[v->type];
     } else {
         // Case where in jitc_var_expand, v->is_literal && v->literal ==
         // identity
